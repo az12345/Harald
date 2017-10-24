@@ -1,0 +1,93 @@
+buildscript {
+    ext {
+        springBootVersion = '1.5.6.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+
+group = 'com.github.solairerove'
+version = '0.0.1-SNAPSHOT'
+//sourceCompatibility = 1.8
+//targetCompatibility = 1.8
+
+jar {
+    baseName = this.name
+    group = this.group
+    version = this.version
+}
+
+bootRun {
+    addResources = true
+}
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    /**
+     *  Spring dependencies
+     */
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+    compile("org.springframework.boot:spring-boot-starter-undertow")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.springframework.boot:spring-boot-devtools")
+    /**
+     *  Other dependencies
+     */
+    compileOnly("org.projectlombok:lombok")
+
+    compile("net.sf.dozer:dozer:$dozerVersion")
+    compile("org.flywaydb:flyway-core:$flywayVersion")
+
+    runtime("org.postgresql:postgresql:$postgresqlVersion")
+
+    /**
+     *  Test dependencies
+     */
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("com.h2database:h2")
+}
+
+test {
+    include '**/*Test.*'
+    testLogging {
+        showStandardStreams = true
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                println "Results: ${result.resultType} (${result.testCount} tests, " +
+                        "${result.successfulTestCount} successes, ${result.failedTestCount} failures, " +
+                        "${result.skippedTestCount} skipped)"
+            }
+        }
+    }
+}
+
+task integrationTest(type: Test) { ->
+    include '**/*IT.*'
+    testLogging {
+        showStandardStreams = true
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                println "Results: ${result.resultType} (${result.testCount} tests, " +
+                        "${result.successfulTestCount} successes, ${result.failedTestCount} failures, " +
+                        "${result.skippedTestCount} skipped)"
+            }
+        }
+    }
+}
+
+integrationTest.shouldRunAfter test
+build.dependsOn integrationTest
